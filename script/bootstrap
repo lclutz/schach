@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# script/bootstrap: Install 3rd-party libs
+
+set -e
+
+if [ "Darwin" = "$(uname -s)" ]; then
+    brew install sdl2 pkg-config
+elif [ -f /etc/os-release ]; then
+    . /etc/os-release
+    if [ "debian" = "$ID" -o "debian" = "$ID_LIKE" ]; then
+        apt-get update
+        apt-get install -qq libsdl2-dev pkgconf
+    else
+        echo "ERROR: Could not detect your OS"
+        exit 1
+    fi
+else
+    echo "ERROR: Could not detect your OS"
+    exit 1
+fi
