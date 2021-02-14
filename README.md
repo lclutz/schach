@@ -1,5 +1,7 @@
 # Schach
 
+![CI](https://github.com/lclutz/schach/workflows/CI/badge.svg?branch=master)
+
 Toy chess programm.
 
 ## Prerequisits
