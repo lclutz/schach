@@ -45,7 +45,7 @@ void Board::loadPositionFromFen(string fen)
             {
                 auto color = isupper(symbol) ? Piece::White : Piece::Black;
                 auto type = pieceFromFENSymbol((char)tolower(symbol));
-                this->square[rank * 8 + file] = color | type;
+                this->square[rank * 8 + file] = (uint_fast8_t)(color | type);
                 file++;
             }
         }

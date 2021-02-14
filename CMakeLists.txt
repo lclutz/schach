@@ -14,17 +14,32 @@ else()
     add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
 endif()
 
-if( WIN32 )
-    list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/SDL2)
+find_package(SDL2 QUIET)
+if( NOT SDL2_FOUND )
+    if( WIN32 )
+        set(SDL2_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/SDL2/include")
+        if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
+            set(SDL2_LIBRARIES "${PROJECT_SOURCE_DIR}/SDL2/lib/x64/SDL2.lib")
+        else()
+            set(SDL2_LIBRARIES "${PROJECT_SOURCE_DIR}/SDL2/lib/x86/SDL2.lib")
+        endif()
+    endif()
+else()
+    find_package(SDL2 REQUIRED)
 endif()
 
-find_package(SDL2 REQUIRED)
+if("${SDL2_LIBRARIES}" STREQUAL "")
+    message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
+    set(SDL2_LIBRARIES "SDL2::SDL2")
+endif()
 
-add_executable(schach 
+include_directories(${SDL2_INCLUDE_DIRS})
+
+add_executable(schach
                src/main.cpp
                src/board.cpp)
 
-target_link_libraries(schach SDL2::SDL2)
+target_link_libraries(schach ${SDL2_LIBRARIES})
 
 if( WIN32 )
     if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
