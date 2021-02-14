@@ -8,33 +8,23 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(includes)
 
-
 if( WIN32 )
     add_compile_options(/Wall /wd4820 /wd4514 /wd4668 /wd4710 /wd4100 /wd5045)
 else()
     add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
 endif()
 
-
 if( WIN32 )
-    set(SDL2_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/SDL2/include")
-
-    if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-        set(SDL2_LIBRARIES "${PROJECT_SOURCE_DIR}/SDL2/lib/x64/SDL2.lib")
-    else()
-        set(SDL2_LIBRARIES "${PROJECT_SOURCE_DIR}/SDL2/lib/x86/SDL2.lib")
-    endif()
-else()
-    find_package(SDL2 REQUIRED)
+    list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/SDL2)
 endif()
 
-include_directories(${SDL2_INCLUDE_DIRS})
+find_package(SDL2 REQUIRED)
 
-
-add_executable(schach src/main.cpp
+add_executable(schach 
+               src/main.cpp
                src/board.cpp)
-target_link_libraries(schach ${SDL2_LIBRARIES})
 
+target_link_libraries(schach SDL2::SDL2)
 
 if( WIN32 )
     if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
@@ -50,7 +40,14 @@ if( WIN32 )
     endif()
 endif()
 
-add_custom_command(TARGET schach POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${PROJECT_SOURCE_DIR}/assets"
-        "$<TARGET_FILE_DIR:schach>/assets")
+if( WIN32 )
+    add_custom_command(TARGET schach POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${PROJECT_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:schach>/assets")
+else()
+    add_custom_command(TARGET schach POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            "${PROJECT_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:schach>/assets")
+endif()

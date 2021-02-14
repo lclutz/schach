@@ -2,9 +2,7 @@
 #define SDL_HELPER_HPP
 
 #include <iostream>
-
-#define SDL_MAIN_HANDLED
-#include "SDL.h"
+#include <SDL.h>
 
 using std::cerr, std::endl;
 
