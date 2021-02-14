@@ -11,18 +11,14 @@ Toy chess programm.
 ### Windows + MSVC
 
 ```console
-> .\script\bootstrap.ps1 # automatically download SDL
-> mkdir build
-> cd build
-> cmake --configure ..
-> cmake --build .
+> .\script\bootstrap.ps1    # Automatically download SDL
+> .\script\setup.ps1        # Initial build / clean rebuild
+> .\script\update.ps1       # Incremental build
 ```
 
-### Linux/MacOS + gcc/clang
+### Linux + gcc or clang
 
 ```console
-$ mkdir build
-$ cd build
-$ cmake --configure ..
-$ cmake --build .
+$ ./script/setup    # Initial build / clean rebuild
+$ ./script/update   # Incremental build
 ```
