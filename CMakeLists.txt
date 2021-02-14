@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(Schach)
 
+set(SCHACH_CI OFF CACHE BOOL "Build running in CI or not")
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -10,8 +12,14 @@ include_directories(includes)
 
 if( WIN32 )
     add_compile_options(/Wall /wd4820 /wd4514 /wd4668 /wd4710 /wd4100 /wd5045)
+    if(${SCHACH_CI})
+        add_compile_options(/WX)
+    endif()
 else()
     add_compile_options(-Wall -Wextra -pedantic -Wno-unused-parameter)
+    if(${SCHACH_CI})
+        add_compile_options(-Werror)
+    endif()
 endif()
 
 find_package(SDL2 QUIET)
