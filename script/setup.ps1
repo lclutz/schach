@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $oldpwd = $PWD
 Set-Location $(Join-Path -Path $PSScriptRoot -ChildPath ..)
 
-function vcvarsall() {
+function vcvarsall {
     $ids = 'Community', 'Professional', 'Enterprise', 'BuildTools' | `
         ForEach-Object { 'Microsoft.VisualStudio.Product.' + $_ }
 

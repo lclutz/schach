@@ -6,7 +6,9 @@ Toy chess programm.
 
 ## Prerequisits
 
+- [cmake](https://cmake.org/download/)
 - [SDL2](https://www.libsdl.org/)
+- A C++ compiler
 
 ## Compile
 
@@ -18,9 +20,10 @@ Toy chess programm.
 > .\script\update.ps1       # Incremental build
 ```
 
-### Linux + gcc or clang
+### Linux + gcc or clang / MacOS + clang
 
 ```console
-$ ./script/setup    # Initial build / clean rebuild
-$ ./script/update   # Incremental build
+$ ./script/bootstrap    # Install prerequisits
+$ ./script/setup        # Initial build / clean rebuild
+$ ./script/update       # Incremental build
 ```
