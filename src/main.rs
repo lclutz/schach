@@ -51,7 +51,7 @@ struct GameState {
 
 impl GameState {
     fn mv(&mut self, mv: &Move) {
-        if mv.dst == mv.src {
+        if mv.dst == mv.src || self.board[mv.src].is_none() {
             return;
         }
 
@@ -88,10 +88,12 @@ impl GameState {
                         _ => kind = None,
                     };
 
-                    self.board[rank * 8 + file] = Some(Piece {
-                        kind: kind.unwrap(),
-                        color: color,
-                    });
+                    if kind.is_some() {
+                        self.board[rank * 8 + file] = Some(Piece {
+                            kind: kind.unwrap(),
+                            color: color,
+                        });
+                    }
 
                     file += 1;
                 }
@@ -122,8 +124,8 @@ fn render_chess_board(
         }
     }
 
-    let w: u32 = 332;
-    let h: u32 = 332;
+    let w: f32 = texture.query().width as f32 / 6.0;
+    let h: f32 = texture.query().height as f32 / 2.0;
     let mut y: i32;
     let mut x: i32;
 
@@ -134,11 +136,11 @@ fn render_chess_board(
 
         match piece.unwrap().kind {
             PieceKind::King => x = 0,
-            PieceKind::Queen => x = 1 * w as i32,
-            PieceKind::Bishop => x = 2 * w as i32,
-            PieceKind::Knight => x = 3 * w as i32,
-            PieceKind::Rook => x = 4 * w as i32,
-            PieceKind::Pawn => x = 5 * w as i32,
+            PieceKind::Queen => x = (1.0 * w) as i32,
+            PieceKind::Bishop => x = (2.0 * w) as i32,
+            PieceKind::Knight => x = (3.0 * w) as i32,
+            PieceKind::Rook => x = (4.0 * w) as i32,
+            PieceKind::Pawn => x = (5.0 * w) as i32,
         };
 
         match piece.unwrap().color {
@@ -148,7 +150,7 @@ fn render_chess_board(
 
         canvas.copy(
             texture,
-            Rect::new(x, y, w, h),
+            Rect::new(x, y, w as u32, h as u32),
             Rect::new(
                 (index as i32 % 8) * (WIDTH as i32 / 8),
                 (index as i32 / 8) * (HEIGHT as i32 / 8),
