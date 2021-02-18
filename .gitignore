@@ -1,3 +1,2 @@
-build/
-SDL2/
-.vscode
+/target
+*.dll
