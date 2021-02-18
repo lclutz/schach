@@ -47,10 +47,11 @@ struct Move {
 
 struct GameState {
     board: [Option<Piece>; 64],
+    selected_square: Option<usize>,
 }
 
 impl GameState {
-    fn mv(&mut self, mv: &Move) {
+    fn mv(&mut self, mv: Move) {
         if mv.dst == mv.src || self.board[mv.src].is_none() {
             return;
         }
@@ -160,6 +161,15 @@ fn render_chess_board(
         )?;
     }
 
+    if game_state.selected_square.is_some() {
+        canvas.set_draw_color(Color::RGB(0, 0, 0));
+
+        let file = (game_state.selected_square.unwrap() as u32 % 8) * (WIDTH / 8);
+        let rank = (game_state.selected_square.unwrap() as u32 / 8) * (HEIGHT / 8);
+
+        canvas.draw_rect(Rect::new(file as i32, rank as i32, WIDTH / 8, HEIGHT / 8))?;
+    }
+
     Ok(())
 }
 
@@ -204,13 +214,14 @@ pub fn main() -> Result<(), String> {
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
-    let mut game_state = GameState { board: [None; 64] };
+    let mut game_state = GameState {
+        board: [None; 64],
+        selected_square: None,
+    };
 
     game_state.read_fen(START_FEN);
 
     render(&mut canvas, &game_state, &texture)?;
-
-    let mut mv = Move { src: 0, dst: 0 };
 
     'running: loop {
         let event = event_pump.wait_event();
@@ -229,16 +240,22 @@ pub fn main() -> Result<(), String> {
             Event::MouseButtonDown { x, y, .. } => {
                 let file = x / (WIDTH as i32 / 8);
                 let rank = y / (HEIGHT as i32 / 8);
-                let index = 8 * rank + file;
-                mv.src = index as usize;
-            }
-            Event::MouseButtonUp { x, y, .. } => {
-                let file = x / (WIDTH as i32 / 8);
-                let rank = y / (HEIGHT as i32 / 8);
-                let index = 8 * rank + file;
-                mv.dst = index as usize;
+                let index = (8 * rank + file) as usize;
 
-                game_state.mv(&mv);
+                if game_state.selected_square.is_some() {
+                    game_state.mv(Move {
+                        src: game_state.selected_square.unwrap(),
+                        dst: index,
+                    });
+                    game_state.selected_square = None;
+                } else {
+                    if game_state.board[index].is_some() {
+                        game_state.selected_square = Some(index);
+                    } else {
+                        game_state.selected_square = None;
+                    }
+                }
+
                 render(&mut canvas, &game_state, &texture)?;
             }
             _ => {}
