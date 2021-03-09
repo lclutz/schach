@@ -28,7 +28,7 @@ enum PieceKind {
     Pawn,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 enum PieceColor {
     White,
     Black,
@@ -48,16 +48,37 @@ struct Move {
 struct GameState {
     board: [Option<Piece>; 64],
     selected_square: Option<usize>,
+    color_to_move: PieceColor,
+}
+
+fn legal_move(game_state: &GameState, mv: &Move) -> bool {
+    // Not a sensible move if the source square does not contain a pieve
+    if game_state.board[mv.src].is_none() {
+        return false;
+    }
+
+    // Cannot move pieces of opponents colour
+    if game_state.board[mv.src].unwrap().color != game_state.color_to_move {
+        return false;
+    }
+
+    return true;
 }
 
 impl GameState {
     fn mv(&mut self, mv: Move) {
-        if mv.dst == mv.src || self.board[mv.src].is_none() {
+        if mv.dst == mv.src || !legal_move(self, &mv) {
             return;
         }
 
         self.board[mv.dst] = self.board[mv.src];
         self.board[mv.src] = None;
+
+        if self.color_to_move == PieceColor::White {
+            self.color_to_move = PieceColor::Black;
+        } else {
+            self.color_to_move = PieceColor::White;
+        }
     }
 
     fn read_fen(&mut self, input: &str) {
@@ -217,6 +238,7 @@ pub fn main() -> Result<(), String> {
     let mut game_state = GameState {
         board: [None; 64],
         selected_square: None,
+        color_to_move: PieceColor::White,
     };
 
     game_state.read_fen(START_FEN);
