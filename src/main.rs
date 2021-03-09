@@ -271,7 +271,9 @@ pub fn main() -> Result<(), String> {
                     });
                     game_state.selected_square = None;
                 } else {
-                    if game_state.board[index].is_some() {
+                    if game_state.board[index].is_some()
+                        && game_state.board[index].unwrap().color == game_state.color_to_move
+                    {
                         game_state.selected_square = Some(index);
                     } else {
                         game_state.selected_square = None;
