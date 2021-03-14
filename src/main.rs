@@ -65,83 +65,82 @@ fn legal_move(game_state: &GameState, mv: &Move) -> bool {
     return true;
 }
 
-impl GameState {
-    fn mv(&mut self, mv: Move) {
-        if mv.dst == mv.src || !legal_move(self, &mv) {
-            return;
-        }
-
-        self.board[mv.dst] = self.board[mv.src];
-        self.board[mv.src] = None;
-
-        if self.color_to_move == PieceColor::White {
-            self.color_to_move = PieceColor::Black;
-        } else {
-            self.color_to_move = PieceColor::White;
-        }
+fn mv(game_state: &mut GameState, mv: Move) {
+    if mv.dst == mv.src || !legal_move(game_state, &mv) {
+        return;
     }
 
-    fn read_fen(&mut self, input: &str) {
-        let mut file = 0;
-        let mut rank = 0;
+    game_state.board[mv.dst] = game_state.board[mv.src];
+    game_state.board[mv.src] = None;
 
-        for symbol in input.chars() {
-            if symbol == '/' {
-                file = 0;
-                rank += 1;
+    if game_state.color_to_move == PieceColor::White {
+        game_state.color_to_move = PieceColor::Black;
+    } else {
+        game_state.color_to_move = PieceColor::White;
+    }
+}
+
+fn read_fen(game_state: &mut GameState, input: &str) {
+    let mut file = 0;
+    let mut rank = 0;
+
+    for symbol in input.chars() {
+        if symbol == '/' {
+            file = 0;
+            rank += 1;
+        } else {
+            if symbol.is_digit(10) {
+                file += symbol.to_digit(10).unwrap() as usize;
             } else {
-                if symbol.is_digit(10) {
-                    file += symbol.to_digit(10).unwrap() as usize;
+                let color = if symbol.is_uppercase() {
+                    PieceColor::White
                 } else {
-                    let color = if symbol.is_uppercase() {
-                        PieceColor::White
-                    } else {
-                        PieceColor::Black
-                    };
+                    PieceColor::Black
+                };
 
-                    let kind: Option<PieceKind>;
-                    match symbol {
-                        'k' | 'K' => kind = Some(PieceKind::King),
-                        'n' | 'N' => kind = Some(PieceKind::Knight),
-                        'b' | 'B' => kind = Some(PieceKind::Bishop),
-                        'r' | 'R' => kind = Some(PieceKind::Rook),
-                        'q' | 'Q' => kind = Some(PieceKind::Queen),
-                        'p' | 'P' => kind = Some(PieceKind::Pawn),
-                        _ => kind = None,
-                    };
+                let kind: Option<PieceKind>;
+                match symbol {
+                    'k' | 'K' => kind = Some(PieceKind::King),
+                    'n' | 'N' => kind = Some(PieceKind::Knight),
+                    'b' | 'B' => kind = Some(PieceKind::Bishop),
+                    'r' | 'R' => kind = Some(PieceKind::Rook),
+                    'q' | 'Q' => kind = Some(PieceKind::Queen),
+                    'p' | 'P' => kind = Some(PieceKind::Pawn),
+                    _ => kind = None,
+                };
 
-                    if kind.is_some() {
-                        self.board[rank * 8 + file] = Some(Piece {
-                            kind: kind.unwrap(),
-                            color: color,
-                        });
-                    }
-
-                    file += 1;
+                if kind.is_some() {
+                    game_state.board[rank * 8 + file] = Some(Piece {
+                        kind: kind.unwrap(),
+                        color: color,
+                    });
                 }
+
+                file += 1;
             }
         }
     }
 }
 
-fn render_chess_board(
-    canvas: &mut WindowCanvas,
-    game_state: &GameState,
-    texture: &Texture,
-) -> Result<(), String> {
+fn render(canvas: &mut WindowCanvas, game_state: &GameState, texture: &Texture) {
+    canvas.set_draw_color(WINDOW_BG);
+    canvas.clear();
+
     canvas.set_draw_color(DARK_SQUARE_BG);
-    canvas.fill_rect(Rect::new(0, 0, WIDTH, HEIGHT))?;
+    canvas.fill_rect(Rect::new(0, 0, WIDTH, HEIGHT)).unwrap();
 
     canvas.set_draw_color(LIGHT_SQUARE_BG);
     for rank in 0..8 {
         for file in 0..8 {
             if (rank + file) % 2 == 0 {
-                canvas.fill_rect(Rect::new(
-                    rank * (WIDTH as i32 / 8),
-                    file * (HEIGHT as i32 / 8),
-                    WIDTH / 8,
-                    HEIGHT / 8,
-                ))?;
+                canvas
+                    .fill_rect(Rect::new(
+                        rank * (WIDTH as i32 / 8),
+                        file * (HEIGHT as i32 / 8),
+                        WIDTH / 8,
+                        HEIGHT / 8,
+                    ))
+                    .unwrap();
             }
         }
     }
@@ -170,16 +169,18 @@ fn render_chess_board(
             PieceColor::White => y = 0,
         };
 
-        canvas.copy(
-            texture,
-            Rect::new(x, y, w as u32, h as u32),
-            Rect::new(
-                (index as i32 % 8) * (WIDTH as i32 / 8),
-                (index as i32 / 8) * (HEIGHT as i32 / 8),
-                WIDTH / 8,
-                HEIGHT / 8,
-            ),
-        )?;
+        canvas
+            .copy(
+                texture,
+                Rect::new(x, y, w as u32, h as u32),
+                Rect::new(
+                    (index as i32 % 8) * (WIDTH as i32 / 8),
+                    (index as i32 / 8) * (HEIGHT as i32 / 8),
+                    WIDTH / 8,
+                    HEIGHT / 8,
+                ),
+            )
+            .unwrap();
     }
 
     if game_state.selected_square.is_some() {
@@ -188,50 +189,34 @@ fn render_chess_board(
         let file = (game_state.selected_square.unwrap() as u32 % 8) * (WIDTH / 8);
         let rank = (game_state.selected_square.unwrap() as u32 / 8) * (HEIGHT / 8);
 
-        canvas.draw_rect(Rect::new(file as i32, rank as i32, WIDTH / 8, HEIGHT / 8))?;
+        canvas
+            .draw_rect(Rect::new(file as i32, rank as i32, WIDTH / 8, HEIGHT / 8))
+            .unwrap();
     }
 
-    Ok(())
-}
-
-fn render(
-    canvas: &mut WindowCanvas,
-    game_state: &GameState,
-    texture: &Texture,
-) -> Result<(), String> {
-    canvas.set_draw_color(WINDOW_BG);
-    canvas.clear();
-
-    render_chess_board(canvas, game_state, texture)?;
-
     canvas.present();
-
-    Ok(())
 }
 
-pub fn main() -> Result<(), String> {
-    let sdl_context = sdl2::init()?;
-    let video_subsystem = sdl_context.video()?;
+pub fn main() {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
 
     let window = video_subsystem
         .window("Schach", WIDTH, HEIGHT)
         .position_centered()
         .resizable()
         .build()
-        .map_err(|e| e.to_string())?;
+        .unwrap();
 
-    let mut canvas = window.into_canvas().build().map_err(|e| e.to_string())?;
+    let mut canvas = window.into_canvas().build().unwrap();
+    canvas.set_logical_size(WIDTH, HEIGHT).unwrap();
 
-    canvas
-        .set_logical_size(WIDTH, HEIGHT)
-        .map_err(|e| e.to_string())?;
-
-    let surface = Surface::load_bmp(Path::new("assets/pieces.bmp"))?;
+    let surface = Surface::load_bmp(Path::new("assets/pieces.bmp")).unwrap();
 
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator
         .create_texture_from_surface(&surface)
-        .map_err(|e| e.to_string())?;
+        .unwrap();
 
     let mut event_pump = sdl_context.event_pump().unwrap();
 
@@ -241,9 +226,9 @@ pub fn main() -> Result<(), String> {
         color_to_move: PieceColor::White,
     };
 
-    game_state.read_fen(START_FEN);
+    read_fen(&mut game_state, START_FEN);
 
-    render(&mut canvas, &game_state, &texture)?;
+    render(&mut canvas, &game_state, &texture);
 
     'running: loop {
         let event = event_pump.wait_event();
@@ -257,7 +242,7 @@ pub fn main() -> Result<(), String> {
                 win_event: WindowEvent::Resized(..),
                 ..
             } => {
-                render(&mut canvas, &game_state, &texture)?;
+                render(&mut canvas, &game_state, &texture);
             }
             Event::MouseButtonDown { x, y, .. } => {
                 let file = x / (WIDTH as i32 / 8);
@@ -265,10 +250,11 @@ pub fn main() -> Result<(), String> {
                 let index = (8 * rank + file) as usize;
 
                 if game_state.selected_square.is_some() {
-                    game_state.mv(Move {
+                    let _mv = Move {
                         src: game_state.selected_square.unwrap(),
                         dst: index,
-                    });
+                    };
+                    mv(&mut game_state, _mv);
                     game_state.selected_square = None;
                 } else {
                     if game_state.board[index].is_some()
@@ -280,11 +266,9 @@ pub fn main() -> Result<(), String> {
                     }
                 }
 
-                render(&mut canvas, &game_state, &texture)?;
+                render(&mut canvas, &game_state, &texture);
             }
             _ => {}
         };
     }
-
-    Ok(())
 }
