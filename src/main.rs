@@ -3,6 +3,7 @@ use std::path::Path;
 mod bitboard;
 mod crc;
 mod engine;
+mod move_info;
 mod position;
 mod renderer;
 
@@ -58,13 +59,17 @@ pub fn main() {
             } => {
                 renderer::render(&mut canvas, &engine, &texture);
             }
-            // Event::MouseButtonDown { x, y, .. } => {
-            //     let file = x / (WIDTH as i32 / 8);
-            //     let rank = y / (HEIGHT as i32 / 8);
-            //     let index = (8 * rank + file) as usize;
+            Event::MouseButtonDown { x, y, .. } => {
+                let file = x / (WIDTH as i32 / 8);
+                let rank = y / (HEIGHT as i32 / 8);
+                let index = (8 * rank + file) as usize;
 
-            //     render(&mut canvas, &game_state, &texture);
-            // }
+                renderer::render(&mut canvas, &engine, &texture);
+                renderer::render_attack_mask(
+                    &mut canvas,
+                    engine.piece_attack_mask(engine.position_as_crc()[index], index),
+                );
+            }
             _ => {}
         };
     }

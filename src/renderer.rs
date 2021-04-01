@@ -21,6 +21,21 @@ pub fn render(canvas: &mut WindowCanvas, engine: &Engine, texture: &Texture) {
     canvas.present();
 }
 
+pub fn render_attack_mask(canvas: &mut WindowCanvas, mask: u64) {
+    canvas.set_draw_color(Color::RGB(0xff, 0x00, 0x00));
+    for index in 0..64 {
+        if (0x8000000000000000 >> index) & mask != 0 {
+            canvas.fill_rect(Rect::new(
+                (index % 8) * WIDTH as i32 / 8 + WIDTH as i32 / 32,
+                (index / 8) * HEIGHT as i32 / 8 + HEIGHT as i32 / 32,
+                WIDTH / 8 - WIDTH / 16,
+                HEIGHT / 8 - WIDTH / 16,
+            )).unwrap();
+        }
+    }
+    canvas.present();
+}
+
 fn render_chess_board(canvas: &mut WindowCanvas, crc: &CRC, texture: &Texture) {
     canvas.set_draw_color(DARK_SQUARE_BG);
     canvas.fill_rect(Rect::new(0, 0, WIDTH, HEIGHT)).unwrap();
@@ -57,11 +72,11 @@ fn render_chess_board(canvas: &mut WindowCanvas, crc: &CRC, texture: &Texture) {
                 x = (1.0 * w) as i32;
                 y = 0;
             }
-            SquareState::WhiteKnight => {
+            SquareState::WhiteBishop => {
                 x = (2.0 * w) as i32;
                 y = 0;
             }
-            SquareState::WhiteBishop => {
+            SquareState::WhiteKnight => {
                 x = (3.0 * w) as i32;
                 y = 0;
             }
@@ -81,11 +96,11 @@ fn render_chess_board(canvas: &mut WindowCanvas, crc: &CRC, texture: &Texture) {
                 x = (1.0 * w) as i32;
                 y = h as i32;
             }
-            SquareState::BlackKnight => {
+            SquareState::BlackBishop => {
                 x = (2.0 * w) as i32;
                 y = h as i32;
             }
-            SquareState::BlackBishop => {
+            SquareState::BlackKnight => {
                 x = (3.0 * w) as i32;
                 y = h as i32;
             }

@@ -1,7 +1,9 @@
 use super::*;
 
 use crc::SquareState;
+use crc::SquareState::*;
 use crc::CRC;
+use move_info::*;
 use position::Position;
 
 pub struct Engine {
@@ -51,48 +53,59 @@ impl Engine {
     }
 
     pub fn position_as_crc(&self) -> CRC {
-        let mut crc = [SquareState::Unoccupied; 64];
+        let mut crc = [Unoccupied; 64];
 
         for square in 0..64 {
-            let mask = 1 << square;
+            let mask = 0x8000000000000000 >> square;
             if (self.position.white.kings & mask) != 0 {
-                crc[square] = SquareState::WhiteKing;
+                crc[square] = WhiteKing;
             }
             if (self.position.white.queens & mask) != 0 {
-                crc[square] = SquareState::WhiteQueen;
+                crc[square] = WhiteQueen;
             }
             if (self.position.white.knights & mask) != 0 {
-                crc[square] = SquareState::WhiteKnight;
+                crc[square] = WhiteKnight;
             }
             if (self.position.white.bishops & mask) != 0 {
-                crc[square] = SquareState::WhiteBishop;
+                crc[square] = WhiteBishop;
             }
             if (self.position.white.rooks & mask) != 0 {
-                crc[square] = SquareState::WhiteRook;
+                crc[square] = WhiteRook;
             }
             if (self.position.white.pawns & mask) != 0 {
-                crc[square] = SquareState::WhitePawn;
+                crc[square] = WhitePawn;
             }
             if (self.position.black.kings & mask) != 0 {
-                crc[square] = SquareState::BlackKing;
+                crc[square] = BlackKing;
             }
             if (self.position.black.queens & mask) != 0 {
-                crc[square] = SquareState::BlackQueen;
+                crc[square] = BlackQueen;
             }
             if (self.position.black.knights & mask) != 0 {
-                crc[square] = SquareState::BlackKnight;
+                crc[square] = BlackKnight;
             }
             if (self.position.black.bishops & mask) != 0 {
-                crc[square] = SquareState::BlackBishop;
+                crc[square] = BlackBishop;
             }
             if (self.position.black.rooks & mask) != 0 {
-                crc[square] = SquareState::BlackRook;
+                crc[square] = BlackRook;
             }
             if (self.position.black.pawns & mask) != 0 {
-                crc[square] = SquareState::BlackPawn;
+                crc[square] = BlackPawn;
             }
         }
 
         return crc;
+    }
+
+    pub fn piece_attack_mask(&self, piece: SquareState, index: usize) -> u64 {
+        match piece {
+            WhiteKing | BlackKing => return KING_MAP[index],
+            WhiteBishop | BlackBishop => return BISHOP_MAP[index],
+            WhiteRook | BlackRook => return ROOK_MAP[index],
+            WhiteKnight | BlackKnight => return KNIGHT_MAP[index],
+            WhiteQueen | BlackQueen => return QUEEN_MAP[index],
+            _ => return 0,
+        }
     }
 }
